@@ -262,7 +262,7 @@ class ReleaseController extends Controller
         if (!is_dir($this->currentPath)) {
             mkdir($this->currentPath);
         } else {
-            $this->execCommand('ls -a | xargs rm -rf', $this->currentPath);
+            //$this->execCommand('ls -a | xargs rm -rf', $this->currentPath);
             //array_map('unlink', glob($path . '/*'));
         }
         $filesUpdated = $this->updateFiles($branch);
