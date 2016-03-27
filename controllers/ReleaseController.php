@@ -586,43 +586,43 @@ class ReleaseController extends Controller
 
     private function checkAppPreventUpdate()
     {
-        if (count($this->module->appUpdateStoppers[$this->scenarioName])) {
-            foreach (
-                $this->module->appUpdateStoppers[$this->scenarioName] as
-                $stopperClass
-            ) {
-                $stopper = new $stopperClass();
-                if ($stopper instanceof UpdateStopper) {
-                    $canProcess = $stopper->check();
-                    if ($canProcess !== true) {
-                        Console::output(
-                            $stopperClass
-                            . ' prevent update process with message \''
-                            . $canProcess['message'] . "'"
-                        );
-                        $answer = Console::select(
-                            'What should we do?',
-                            [
-                                self::PREVENT_WAIT   => 'Wait. Updater would ask for permission every 5 sec and proceed after positive answer',
-                                self::PREVENT_CANCEL => 'Cancel update',
-                            ]
-                        );
-                        if ($answer === self::PREVENT_CANCEL) {
-                            $this->deleteLock();
+        if (isset($this->module->appUpdateStoppers[$this->scenarioName])) {
+            $scenarioStoppers = $this->module->appUpdateStoppers[$this->scenarioName];
+            if (count($scenarioStoppers) > 0) {
+                foreach ($scenarioStoppers as $stopperClass) {
+                    $stopper = new $stopperClass();
+                    if ($stopper instanceof UpdateStopper) {
+                        $canProcess = $stopper->check();
+                        if ($canProcess !== true) {
+                            Console::output(
+                                $stopperClass
+                                . ' prevent update process with message \''
+                                . $canProcess['message'] . "'"
+                            );
+                            $answer = Console::select(
+                                'What should we do?',
+                                [
+                                    self::PREVENT_WAIT   => 'Wait. Updater would ask for permission every 5 sec and proceed after positive answer',
+                                    self::PREVENT_CANCEL => 'Cancel update',
+                                ]
+                            );
+                            if ($answer === self::PREVENT_CANCEL) {
+                                $this->deleteLock();
 
-                            return false;
-                        } else {
-                            while (true) {
-                                $canProcess = $stopper->check();
-                                if ($canProcess !== true) {
-                                    Console::output(
-                                        'Still waiting: '
-                                        . $canProcess['message']
-                                        . '. Sleep for 5 seconds'
-                                    );
-                                    sleep(5);
-                                } else {
-                                    break;
+                                return false;
+                            } else {
+                                while (true) {
+                                    $canProcess = $stopper->check();
+                                    if ($canProcess !== true) {
+                                        Console::output(
+                                            'Still waiting: '
+                                            . $canProcess['message']
+                                            . '. Sleep for 5 seconds'
+                                        );
+                                        sleep(5);
+                                    } else {
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -630,6 +630,7 @@ class ReleaseController extends Controller
                 }
             }
         }
+
 
         return true;
     }
