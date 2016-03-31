@@ -259,12 +259,14 @@ class ReleaseController extends Controller
         $this->currentPath = $this->module->releasesDir . DIRECTORY_SEPARATOR
             . $branch;
 
+        $isRepoAlreadyExisting = false;
         if (!is_dir($this->currentPath)) {
             mkdir($this->currentPath);
         } else {
-            $this->execCommand('ls -A | xargs rm -rf', $this->currentPath);
+            $isRepoAlreadyExisting = true;
+            //$this->execCommand('ls -A | xargs rm -rf', $this->currentPath);
         }
-        $filesUpdated = $this->updateFiles($branch);
+        $filesUpdated = $this->updateFiles($branch, $isRepoAlreadyExisting);
         if (!$filesUpdated) {
             return false;
         }
@@ -471,14 +473,20 @@ class ReleaseController extends Controller
         return $more ? 1 : -1;
     }
 
-    protected function updateFiles($branch)
+    protected function updateFiles($branch, $isRepoAlreadyExisting = false)
     {
         $fullBranchName = $this->getFullBranchName($branch);
         Console::output('Process Git');
         $fullPath = $this->getRelativePath($this->module->path,
             $this->currentPath);
-        $command = 'git clone ' . $this->module->gitUrl . ' --branch '
-            . $fullBranchName . ' --single-branch --depth=1 ' . $fullPath;
+
+        if ($isRepoAlreadyExisting) {
+            $command = 'git -C ' . $fullPath . ' pull ' . $fullBranchName;
+        } else {
+            $command = 'git clone ' . $this->module->gitUrl . ' --branch '
+                . $fullBranchName . ' --single-branch --depth=1 ' . $fullPath;
+        }
+
         Console::output('Run ' . $command);
         list($return_var, $result) = $this->execCommand($command);
         if ($return_var === 0) {
