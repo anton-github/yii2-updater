@@ -481,7 +481,7 @@ class ReleaseController extends Controller
             $this->currentPath);
 
         if ($isRepoAlreadyExisting) {
-            $command = 'git -C ' . $fullPath . ' pull ' . $fullBranchName;
+            $command = 'git -C ' . $fullPath . ' fetch --depth 1 && git -C ' . $fullPath . ' reset --hard ' . $branch;
         } else {
             $command = 'git clone ' . $this->module->gitUrl . ' --branch '
                 . $fullBranchName . ' --single-branch --depth=1 ' . $fullPath;
